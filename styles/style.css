@@ -1,0 +1,39 @@
+body {
+    font-family: sans-serif;
+}
+
+.game-area {
+    width: 800px;
+    height: 600px;
+    margin:50px;
+    background-color: rgb(3, 3, 22);
+}
+
+.game-area .enemy {
+    position: absolute;
+    margin-left: -20px;
+    margin-top: -20px;
+    width: 40px;
+}
+
+.game-area .player {
+    position: absolute;
+    margin-left: -20px;
+    width: 40px;
+
+    /* to see on board */
+    height:40px;
+    background-color: green;
+}
+
+.game-area .laser {
+    position: absolute;
+    margin-left: -2.5px;
+    height: 30px;
+}
+
+.game .enemy-laser {
+    position: absolute;
+    margin-left: -2.5px;
+    height:30px;
+}

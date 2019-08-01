@@ -4,22 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="styles/style.css">
     <title>Space Invaders</title>
 </head>
 <body>
-    <div class="wrapper">
-        <header>
+    <header>
+        <div class="wrapper">
             <h1>Space Invaders</h1>
-        </header>
-        <main>
-            <div class="game-area"></div>
-            <section class="instructions">
-                <p>Use left and right arrows to move</p>
-            </section>
-        </main>
-        <footer>
-            Andrea Maille 2019
-        </footer>
-    </div>
+        </div>
+    </header>
+    <main class="game-wrapper">
+        <div class="game-area"></div>
+        <section class="instructions">
+            <p>Use left and right arrows to move</p>
+        </section>
+        <div class="win-game">
+            <h2>Congrats!</h2>
+            <button>Restart</button>
+        </div>
+        <div class="game-over">
+            <h2>You lost</h2>
+            <button>Play Again</button>
+        </div>
+    </main>
+    <footer>
+        Andrea Maille 2019
+    </footer>
+    <script src="script.js"></script>
 </body>
 </html>
