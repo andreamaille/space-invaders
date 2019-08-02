@@ -16,11 +16,10 @@ app.keyCodes = {
 }
 
 app.enemies = {
-    row: 10,
-    padding: 50,
-    margin: 80
+    perRow: 10,
+    margin: 80, 
+    padding: 80
 }
-
 
 app.state = {
     lastTime: Date.now(),
@@ -151,14 +150,52 @@ app.update = () => {
 
 }
 
-app.createEnemies = () => {
+app.createEnemies = (element, positionX, positionY) => {
+    const container = document.createElement('div');
+    container.className = 'enemy'
+    element.appendChild(container)
+
+    const enemy = {
+        positionX,
+        positionY,
+        element
+    }
+
+    console.log(enemy)
+
+    app.state.enemies.push(enemy)
+
+    app.setPosition(container, positionX, positionY)
     
+}
+
+
+
+app.setEnemies = () => {
+    const gameArea = document.querySelector(".game-area");
+
+    const perRow = app.enemies.perRow
+    const margin = app.enemies.margin
+    const padding = app.enemies.padding
+
+    const spacing = (gameWidth - margin * 2 ) / (perRow - 1)
+
+    for (let j = 0; j<3; j++) {
+        const positionY = padding + j * padding
+        for (let i =0; i < perRow; i++) {
+            const positionX = i * spacing + margin
+            app.createEnemies(gameArea, positionX, positionY)
+        }
+    }
 
 }
 
+
+
+
 app.init = function () {
     app.createPlayer()
-    app.createEnemies()
+    app.setEnemies()
 }
 
 app.init()
