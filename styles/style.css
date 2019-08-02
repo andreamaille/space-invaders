@@ -14,6 +14,10 @@ body {
     margin-left: -20px;
     margin-top: -20px;
     width: 40px;
+
+    height:40px;
+    background-color: pink;
+
 }
 
 .game-area .player {
@@ -30,6 +34,10 @@ body {
     position: absolute;
     margin-left: -2.5px;
     height: 30px;
+
+    /* to see on board */
+    width:10px;
+    background-color: rgb(199, 176, 199);
 }
 
 .game .enemy-laser {

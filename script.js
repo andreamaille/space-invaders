@@ -4,22 +4,38 @@ const gameWidth = 800;
 const gameHeight = 600;
 const playerWidth = 20;
 
-const keyCodes = {
+app.playerSpeed = 500;
+
+app.laserSpeed = 300;
+app.laserCoolDown = 0.5;
+
+app.keyCodes = {
     left: 37,
     right: 39,
     spaceBar: 32
 }
 
-const state = {
-    playerX:0,
-    playerY:0,
-    isLeftKeyDown: false,
-    isRightKeyDown: false,
-    isSpaceKeyDown: false
+app.enemies = {
+    row: 10,
+    padding: 50,
+    margin: 80
 }
 
 
-function setPosition (element, positionX, positionY) {
+app.state = {
+    lastTime: Date.now(),
+    playerX:0,
+    playerY:0,
+    playerCoolDown:0,
+    isLeftKeyDown: false,
+    isRightKeyDown: false,
+    isSpaceKeyDown: false,
+    lasers:[],
+    enemies: []
+}
+
+
+app.setPosition = (element, positionX, positionY) => {
     element.style.transform = `translate(${positionX}px, ${positionY}px)`
 }
 
@@ -38,59 +54,115 @@ app.createPlayer = () => {
     const gameArea = document.querySelector('.game-area');
 
     // initial position of player
-    state.playerX = gameWidth / 2
-    state.playerY = gameHeight - 50
+    app.state.playerX = gameWidth / 2
+    app.state.playerY = gameHeight - 50
 
     const player = document.createElement('div')
     player.className = 'player'
     gameArea.appendChild(player)
-    setPosition(player, state.playerX, state.playerY)
+    app.setPosition(player, app.state.playerX, app.state.playerY)
 }
 
+app.shootLaser = (element, positionX, positionY) => {
+    const newLaser = document.createElement('div');
+    newLaser.className = 'laser'
+    element.appendChild(newLaser)
+    const laser = {positionX, positionY, newLaser};
+    app.state.lasers.push(laser)
+    app.setPosition(newLaser, positionX, positionY)
+}
 
 app.isKeyDown = (e) => {
-    if (e.keyCode === keyCodes.left) {
-        state.isLeftKeyDown = true
-    } else if (e.keyCode === keyCodes.right) {
-        state.isRightKeyDown = true
-    } else if (e.keyCode === keyCodes.spaceBar){
-        state.isSpaceKeyDown = true
+    if (e.keyCode === app.keyCodes.left) {
+        app.state.isLeftKeyDown = true
+    } else if (e.keyCode === app.keyCodes.right) {
+        app.state.isRightKeyDown = true
+    } else if (e.keyCode === app.keyCodes.spaceBar){
+        app.state.isSpaceKeyDown = true
     }
 }
 
 app.isKeyUp = (e) => {
-    if (e.keyCode === keyCodes.left) {
-        state.isLeftKeyDown = false
-    } else if (e.keyCode === keyCodes.right) {
-        state.isRightKeyDown = false
-    } else if (e.keyCode === keyCodes.spaceBar) {
-        state.isSpaceKeyDown = false
+    if (e.keyCode === app.keyCodes.left) {
+        app.state.isLeftKeyDown = false
+    } else if (e.keyCode === app.keyCodes.right) {
+        app.state.isRightKeyDown = false
+    } else if (e.keyCode === app.keyCodes.spaceBar) {
+        app.state.isSpaceKeyDown = false
     }
 }
 
-app.movePlayer = () => {
-    if (state.isLeftKeyDown) {
-        state.playerX -= 5
-    } else if (state.isRightKeyDown) {
-        state.playerX += 5
+app.movePlayer = (deltaTime,element) => {
+    if (app.state.isLeftKeyDown) {
+        app.state.playerX -= deltaTime * app.playerSpeed
+    } else if (app.state.isRightKeyDown) {
+        app.state.playerX += deltaTime * app.playerSpeed
     } 
 
     const player = document.querySelector('.player')
-    setPosition(player, state.playerX, state.playerY)
+    app.setPosition(player, app.state.playerX, app.state.playerY)
 
-    state.playerX = app.clamp(state.playerX, playerWidth, gameWidth - playerWidth)
+    app.state.playerX = app.clamp(app.state.playerX, playerWidth, gameWidth - playerWidth)
+
+    if (app.state.isSpaceKeyDown && app.state.playerCoolDown <= 0) {
+        app.shootLaser(element, app.state.playerX, app.state.playerY)
+        app.state.playerCoolDown = app.laserCoolDown
+    }
+
+    if (app.state.playerCoolDown > 0) {
+        app.state.playerCoolDown -= deltaTime
+    }
+}
+
+app.moveLasers = (deltaTime, element) => { 
+    const lasers = app.state.lasers
+
+    for (let i = 0; i < lasers.length; i++) {
+        const laser = lasers[i];
+        laser.positionY -= deltaTime * app.laserSpeed;
+        
+        if (laser.positionY < 0) {
+            element.removeChild(laser.newLaser)
+            laser.isDead = true
+            app.state.lasers = lasers.filter(laser => !laser.isDead)
+        }
+
+        app.setPosition(laser.newLaser, laser.positionX, laser.positionY)
+    }
 }
 
 app.update = () => {
-    app.movePlayer()
+    const element = document.querySelector('.game-area')
+
+    const currentTime = Date.now();
+
+    const deltaTime = (currentTime - app.state.lastTime) / 1000
+
+
+    app.movePlayer(deltaTime, element)
+
+    app.state.lastTime = currentTime;
+
     window.requestAnimationFrame(app.update)
+
+    // lasers
+    app.moveLasers(deltaTime,element)
+
+
+}
+
+app.createEnemies = () => {
+    
+
 }
 
 app.init = function () {
     app.createPlayer()
+    app.createEnemies()
 }
 
 app.init()
+
 window.addEventListener("keydown", app.isKeyDown)
 window.addEventListener("keyup", app.isKeyUp)
 window.requestAnimationFrame(app.update)
