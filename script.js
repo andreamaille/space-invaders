@@ -17,7 +17,7 @@ app.keyCodes = {
 }
 
 app.enemies = {
-    perRow: 10,
+    perRow: 10,  
     margin: 80, 
     padding: 80
 }
@@ -49,7 +49,7 @@ app.collisionDetection = (rect1, rect2) => {
     )
 }
 
-// keeps player on game board
+// keeps player on game board without going over edge
 app.clamp = (value, min, max) => {
     if (value < min) {
         return min;
