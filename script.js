@@ -2,12 +2,13 @@ const app = {}
 
 const gameWidth = 800;
 const gameHeight = 600;
+
 const playerWidth = 20;
 
 app.playerSpeed = 500;
 
 app.laserSpeed = 300;
-app.laserCoolDown = 0.5;
+app.laserCoolDown = 0.3;
 
 app.keyCodes = {
     left: 37,
@@ -30,12 +31,22 @@ app.state = {
     isRightKeyDown: false,
     isSpaceKeyDown: false,
     lasers:[],
-    enemies: []
+    enemies: [],
+    newEnemies: []
 }
 
 
 app.setPosition = (element, positionX, positionY) => {
     element.style.transform = `translate(${positionX}px, ${positionY}px)`
+}
+
+app.collisionDetection = (rect1, rect2) => {
+    return !(
+        rect2.left > rect1.right ||
+        rect2.right < rect1.left ||
+        rect2.top > rect1.bottom ||
+        rect2.bottom < rect1.top
+    )
 }
 
 // keeps player on game board
@@ -77,6 +88,7 @@ app.isKeyDown = (e) => {
     } else if (e.keyCode === app.keyCodes.right) {
         app.state.isRightKeyDown = true
     } else if (e.keyCode === app.keyCodes.spaceBar){
+        e.preventDefault()
         app.state.isSpaceKeyDown = true
     }
 }
@@ -87,6 +99,7 @@ app.isKeyUp = (e) => {
     } else if (e.keyCode === app.keyCodes.right) {
         app.state.isRightKeyDown = false
     } else if (e.keyCode === app.keyCodes.spaceBar) {
+        e.preventDefault()
         app.state.isSpaceKeyDown = false
     }
 }
@@ -113,6 +126,7 @@ app.movePlayer = (deltaTime,element) => {
     }
 }
 
+
 app.moveLasers = (deltaTime, element) => { 
     const lasers = app.state.lasers
 
@@ -127,6 +141,52 @@ app.moveLasers = (deltaTime, element) => {
         }
 
         app.setPosition(laser.newLaser, laser.positionX, laser.positionY)
+
+        // READ OVER THIS CODE
+        const rect1 = laser.newLaser.getBoundingClientRect();
+        const enemies = app.state.enemies;
+        
+        for (let j = 0; j < enemies.length; j++) {
+            const enemy = enemies[j];
+
+            if (enemy.isDead) continue;
+            
+            const rect2 = enemy.container.getBoundingClientRect();
+
+            if (app.collisionDetection(rect1, rect2)) {
+                app.addEnemies()
+                // Enemy was hit
+                element.removeChild(laser.newLaser)
+                laser.isDead = true
+                
+                app.state.lasers = lasers.filter(laser => !laser.isDead)
+
+                app.state.newEnemies.push(enemy)
+
+                element.removeChild(enemy.container)
+                enemy.isDead = true
+                app.state.enemies = enemies.filter(enemy => !enemy.isDead)
+
+                break;
+
+                
+            }    
+        }
+    }
+}
+
+app.moveEnemies = (deltaTime, element) => {
+    // move enemies in a circle 
+    const deltaX = Math.sin(app.state.lastTime / 1000.0) * 50;
+    const deltaY = Math.cos(app.state.lastTime / 1000.0) * 10;
+
+    const enemies = app.state.enemies
+
+    for (let i = 0; i < enemies.length; i++) {
+        const enemy = enemies[i]
+        const x = enemy.positionX + deltaX
+        const y = enemy.positionY + deltaY
+        app.setPosition(enemy.container, x, y)
     }
 }
 
@@ -139,6 +199,8 @@ app.update = () => {
 
 
     app.movePlayer(deltaTime, element)
+    app.moveEnemies(deltaTime, element)
+    
 
     app.state.lastTime = currentTime;
 
@@ -158,10 +220,8 @@ app.createEnemies = (element, positionX, positionY) => {
     const enemy = {
         positionX,
         positionY,
-        element
+        container
     }
-
-    console.log(enemy)
 
     app.state.enemies.push(enemy)
 
@@ -169,7 +229,22 @@ app.createEnemies = (element, positionX, positionY) => {
     
 }
 
+app.addEnemies = () => {
+    
+    const element = document.querySelector('.game-area')
 
+    const newTargets = app.state.newEnemies 
+
+    if (app.state.newEnemies.length > 10) {
+        console.log('cool')
+        for (let i = 0; i < newTargets.length; i++) {
+            let newEnemy = newTargets[i]
+            app.createEnemies(element, newEnemy.positionX, newEnemy.positionY )
+        }
+
+        app.state.newEnemies = []
+    }
+}
 
 app.setEnemies = () => {
     const gameArea = document.querySelector(".game-area");
@@ -177,7 +252,6 @@ app.setEnemies = () => {
     const perRow = app.enemies.perRow
     const margin = app.enemies.margin
     const padding = app.enemies.padding
-
     const spacing = (gameWidth - margin * 2 ) / (perRow - 1)
 
     for (let j = 0; j<3; j++) {
@@ -187,10 +261,7 @@ app.setEnemies = () => {
             app.createEnemies(gameArea, positionX, positionY)
         }
     }
-
 }
-
-
 
 
 app.init = function () {
@@ -200,6 +271,10 @@ app.init = function () {
 
 app.init()
 
-window.addEventListener("keydown", app.isKeyDown)
-window.addEventListener("keyup", app.isKeyUp)
-window.requestAnimationFrame(app.update)
+window.addEventListener("keydown", app.isKeyDown) 
+window.addEventListener("keyup", app.isKeyUp) 
+window.requestAnimationFrame(app.update) 
+
+
+// Credits 
+// Gotta give credit to Frederik De Bleser's youtube tutorials on Creating Space Invaders in helping me learn to build my first game app while adding my own functionality
