@@ -4,33 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://fonts.googleapis.com/css?family=Alegreya+Sans:900|Monda:400,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/style.css">
     <title>Space Invaders</title>
 </head>
 <body>
-    <header>
-        <div class="wrapper">
-            <h1>Space Invaders</h1>
+    <header class="wrapper">
+        <div class="game-info">
+            <div class="inner-wrapper">
+                <h1>Space Invaders</h1>
+                <div class="game-stats">
+                    <p id='score'>Score: 0</p>
+                    <p id ='countdown'>Time: 30</p>
+                </div>
+                <div class="instructions">
+                    <p>Aliens are attacking! Use the left and right arrows to move and space bar to shoot as many enemies within 30 seconds.</p>
+                </div>
+            </div>
+        </div>
+        <div class="game-content">
+            <div class="game-area"></div>
         </div>
     </header>
-<!--     
-    <main class="game-wrapper"> -->
-        <div class="game-area"></div>
-        <section class="instructions">
-            <p>Use left and right arrows to move</p>
-        </section>
-        <div class="win-game">
-            <h2>Congrats!</h2>
-            <button>Restart</button>
-        </div>
-        <div class="game-over">
-            <h2>You lost</h2>
-            <button>Play Again</button>
-        </div>
-    <!-- </main> -->
-    <footer>
-        Andrea Maille 2019
-    </footer>
     <script src="script.js"></script>
 </body>
 </html>
