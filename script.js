@@ -1,9 +1,9 @@
 const app = {}
 
-const gameWidth = 700;
-const gameHeight = 600;
-const playerWidth = 80;
+app.gameWidth = 700;
+app.gameHeight = 600;
 
+app.playerWidth = 80;
 app.playerSpeed = 500;
 app.laserSpeed = 300;
 app.laserCoolDown = 0.3;
@@ -33,11 +33,11 @@ app.state = {
     enemies: [],
     newEnemies: [],
     score: 0,
-    timer: 30
+    timer: 20
 }
 
-app.setPosition = (element, positionX, positionY) => {
-    element.style.transform = `translate(${positionX}px, ${positionY}px)`
+app.setPosition = (element, x, y) => {
+    element.style.transform = `translate(${x}px, ${y}px)`
 }
 
 app.collisionDetection = (rect1, rect2) => {
@@ -65,8 +65,7 @@ app.printScore = () => {
 }
 
 app.start = () => {
-    if (app.state.startGame === true) {
-        event.preventDefault();
+    if (app.state.startGame) {
         app.timer()
         app.removeInstructions()
     }
@@ -88,6 +87,7 @@ app.removeInstructions = () => {
 
 app.timer = () => {
     let timeRemaining = app.state.timer;
+    
     const countdownContainer = document.getElementById('countdown');
 
     setInterval(() => {
@@ -115,7 +115,6 @@ app.results = () => {
     resultsContainer.className = 'results'
 
     header.appendChild(resultsContainer)
-
 }
 
 app.restart = () => {
@@ -127,8 +126,8 @@ app.createPlayer = () => {
     const gameArea = document.querySelector('.game-area');
 
     // initial position of player
-    app.state.playerX = gameWidth / 2
-    app.state.playerY = gameHeight - 20
+    app.state.playerX = app.gameWidth / 2
+    app.state.playerY = app.gameHeight - 20
 
     const player = document.createElement('div')
     player.className = 'player'
@@ -136,25 +135,25 @@ app.createPlayer = () => {
     app.setPosition(player, app.state.playerX, app.state.playerY)
 }
 
-app.movePlayer = (deltaTime, element) => {
+app.movePlayer = (delta, element) => {
     if (app.state.isLeftKeyDown) {
-        app.state.playerX -= deltaTime * app.playerSpeed
+        app.state.playerX -= delta * app.playerSpeed
     } else if (app.state.isRightKeyDown) {
-        app.state.playerX += deltaTime * app.playerSpeed
+        app.state.playerX += delta * app.playerSpeed
     }
 
     const player = document.querySelector('.player')
     app.setPosition(player, app.state.playerX, app.state.playerY)
 
-    app.state.playerX = app.clamp(app.state.playerX, playerWidth, gameWidth - playerWidth)
+    app.state.playerX = app.clamp(app.state.playerX, app.playerWidth, app.gameWidth - app.playerWidth)
 
     if (app.state.isSpaceKeyDown && app.state.playerCoolDown <= 0 && app.state.startGame) {
-        app.shootLaser(element, app.state.playerX, app.state.playerY)
+        app.createLaser(element, app.state.playerX, app.state.playerY)
         app.state.playerCoolDown = app.laserCoolDown
     }
 
     if (app.state.playerCoolDown > 0) {
-        app.state.playerCoolDown -= deltaTime
+        app.state.playerCoolDown -= delta
     }
 }
 
@@ -186,45 +185,49 @@ app.isKeyUp = (e) => {
 
 
 }
-
 // Lasers
-app.shootLaser = (element, positionX, positionY) => {
+app.createLaser = (element, x, y) => {
     const newLaser = document.createElement('div');
     const currentLasers = app.state.lasers
     newLaser.className = 'laser'
+
     element.appendChild(newLaser)
-    const laser = {positionX, positionY, newLaser};
+
+    const laser = {
+        x, 
+        y, 
+        newLaser
+    };
+
     currentLasers.push(laser)
-    app.setPosition(newLaser, positionX, positionY)
+
+    app.setPosition(newLaser, x, y)
 }
 
-app.moveLasers = (deltaTime, element) => { 
+app.moveLasers = (delta, element) => { 
     const lasers = app.state.lasers
 
     for (let i = 0; i < lasers.length; i++) {
         const laser = lasers[i];
 
-        laser.positionY -= deltaTime * app.laserSpeed;
+        laser.y -= delta * app.laserSpeed;
         
-        if (laser.positionY < 0) {
+        if (laser.y < 0) {
             element.removeChild(laser.newLaser)
             laser.isDead = true
             app.state.lasers = lasers.filter(laser => !laser.isDead)
         }
 
-        app.setPosition(laser.newLaser, laser.positionX, laser.positionY)
+        app.setPosition(laser.newLaser, laser.x, laser.y)
 
 
         const rect1 = laser.newLaser.getBoundingClientRect();
 
         const enemies = app.state.enemies;
         
-
         for (let j = 0; j < enemies.length; j++) {
             const enemy = enemies[j];
 
-            // if (enemy.isDead) continue;
-            
             const rect2 = enemy.container.getBoundingClientRect();
 
             if (app.collisionDetection(rect1, rect2)) {
@@ -251,36 +254,36 @@ app.moveLasers = (deltaTime, element) => {
 }
 
 // Enemies 
-app.moveEnemies = (deltaTime, element) => {
-    // move enemies in a circle 
-    const deltaX = Math.sin(app.state.lastTime / 1000.0) * 50;
-    const deltaY = Math.cos(app.state.lastTime / 1000.0) * 10;
+app.moveEnemies = () => {
+    const deltaX = Math.sin(app.state.lastTime / 1000.0) * 70;
+    
+    const deltaY = Math.cos(app.state.lastTime / 1000.0) * 20;
 
     const enemies = app.state.enemies
 
     for (let i = 0; i < enemies.length; i++) {
         const enemy = enemies[i]
-        const x = enemy.positionX + deltaX
-        const y = enemy.positionY + deltaY
+        const x = enemy.x + deltaX
+        const y = enemy.y + deltaY
         
         app.setPosition(enemy.container, x, y)
     }
 }
 
-app.createEnemies = (element, positionX, positionY) => {
+app.createEnemies = (element, x, y) => {
     const container = document.createElement('div');
     container.className = 'enemy'
     element.appendChild(container)
 
     const enemy = {
-        positionX,
-        positionY,
+        x,
+        y,
         container
     }
 
     app.state.enemies.push(enemy)
 
-    app.setPosition(container, positionX, positionY)
+    app.setPosition(container, x, y)
 }
 
 app.addEnemies = () => {
@@ -292,7 +295,7 @@ app.addEnemies = () => {
 
         for (let i = 0; i < newTargets.length; i++) {
             let newEnemy = newTargets[i]
-            app.createEnemies(element, newEnemy.positionX, newEnemy.positionY)
+            app.createEnemies(element, newEnemy.x, newEnemy.y)
         }
 
         app.state.newEnemies = []
@@ -304,28 +307,33 @@ app.setEnemies = () => {
     const perRow = app.enemies.perRow
     const margin = app.enemies.margin
     const padding = app.enemies.padding
-    const spacing = (gameWidth - margin * 2 ) / (perRow - 1)
+    const spacing = (app.gameWidth - margin * 2 ) / (perRow - 1)
 
     for (let j = 0; j<3; j++) {
-        const positionY = padding + j * padding
+        const y = padding + j * padding
         for (let i =0; i < perRow; i++) {
-            const positionX = i * spacing + margin
-            app.createEnemies(gameArea, positionX, positionY)
+            const x = i * spacing + margin
+            app.createEnemies(gameArea, x, y)
         }
     }
+    
 }
 
 app.update = () => {
     const element = document.querySelector('.game-area')
+
     const currentTime = Date.now();
-    const deltaTime = (currentTime - app.state.lastTime) / 1000
+
+    const delta = (currentTime - app.state.lastTime) / 1000
 
     app.state.lastTime = currentTime;
 
-    app.movePlayer(deltaTime, element)
-    app.moveEnemies(deltaTime, element)
-    app.moveLasers(deltaTime, element)
+    app.movePlayer(delta, element)
 
+    app.moveEnemies()
+
+    app.moveLasers(delta, element)
+    
     window.requestAnimationFrame(app.update)
 }
 
@@ -333,14 +341,18 @@ app.init = function () {
     app.createPlayer()
     app.setEnemies()
     app.createInstructions()
+    
 }
 
 app.init()
 
 window.addEventListener("keydown", app.isKeyDown) 
 window.addEventListener("keyup", app.isKeyUp) 
-window.requestAnimationFrame(app.update) 
+window.requestAnimationFrame(app.update)
+
 
 
 // Credits 
-// Gotta give credit to Frederik De Bleser's youtube tutorials on Creating Space Invaders in helping me learn to build my first game app while   my own functionality
+// https://isaacsukin.com/news/2015/01 detailed-explanation-javascript-game-loops-and-timing#timing-problems
+// Frederik De Bleser's youtube tutorials on Creating Space Invaders 
+// Academy Space Invaders - https://github.com/keephopealive/academy-space-invaders
