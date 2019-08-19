@@ -40,7 +40,6 @@ h1, h2 {
     line-height: 60px;
     letter-spacing: 2px;
     transform: skew(-10deg);
-    /* text-shadow: blueviolet 1px 1px, blueviolet 2px 2px, blueviolet 3px 3px, blueviolet 4px 4px, blueviolet 5px 5px, blueviolet 6px 6px; */
     transform: rotate(-5deg);
     animation: neon1 1.5s ease-in-out infinite alternate;
     transition: all 0.5s;

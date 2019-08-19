@@ -324,9 +324,12 @@ window.requestAnimationFrame(app.update)
 
 
 
+
+
 // Resources: 
 // https://isaacsukin.com/news/2015/01 detailed-explanation-javascript-game-loops-and-timing#timing-problems
 // Frederik De Bleser's youtube tutorials - Creating Space Invaders 
 // Academy Space Invaders - https://github.com/keephopealive/academy-space-invaders
 // https://hackernoon.com/math-sin-and-math-cos-the-creative-coders-best-friend-597d69000644
 // Creating grids with JavaScript - https://codepen.io/nakessler/pen/qOdJWm
+// Neon text - https://codepen.io/FelixRilling/pen/qzfoc
