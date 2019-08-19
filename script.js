@@ -23,9 +23,8 @@ app.laser = {
     delay: 0.3
 }
 
-app.enemies = {
-    perRow: 8,  
-    margin: 20, 
+app.grid = {
+    itemsPerRow: 8,  
     padding: 100
 }
 
@@ -190,8 +189,6 @@ app.movePlayer = (delta, gameArea) => {
     app.setPosition(player, app.state.playerX, app.state.playerY)
 }
 
-
-// Lasers
 app.createLaser = (gameArea, x, y) => {
     const container = document.createElement('div');
 
@@ -243,41 +240,32 @@ app.moveLasers = (delta, element) => {
     })
 }
 
-
-
 app.moveEnemies = () => {
-    const deltaX = Math.sin(app.state.lastTime / 1000.0) * 20;
-    const deltaY = Math.cos(app.state.lastTime / 1000.0) * 50;
+    const updateX = Math.sin(app.state.lastTime / 1000.0) * app.game.height / 10;
+    const updateY = Math.cos(app.state.lastTime / 1000.0) * app.game.width / 6;
 
-
-
-    app.state.enemies.map(enemy => {
-        const x = enemy.x + deltaX
-        const y = enemy.y + deltaY
+    app.state.enemies.forEach(enemy => {
+        const x = enemy.x + updateX
+        const y = enemy.y + updateY
         app.setPosition(enemy.container, x, y)
-        
     })
-
 }
 
-app.setEnemies = () => {
-    const spacing = (app.game.width - app.enemies.margin * 2) / (app.enemies.perRow - 1)
+app.createGrid = () => {
+    for (let row = 1; row <= 3; row++) {
+        const y = row * app.grid.padding
 
-    for (let j = 0; j < 3; j++) {
-        const y = app.enemies.padding + j * app.enemies.padding
-
-        for (let i = 0; i < app.enemies.perRow; i++) {
-            const x = i * spacing + app.enemies.margin
+        for (let column = 0; column < app.grid.itemsPerRow; column++) {
+            const x = column * app.grid.padding
             app.createEnemies(app.game.area, x, y)
         }
     }
-
 }
 
-app.createEnemies = (element, x, y) => {
+app.createEnemies = (gameArea, x, y) => {
     const container = document.createElement('div');
     container.className = 'enemy'
-    element.appendChild(container)
+    gameArea.appendChild(container)
 
     const enemy = {
         x,
@@ -291,20 +279,15 @@ app.createEnemies = (element, x, y) => {
 }
 
 app.rebootEnemies = () => {
-    const newTargets = app.state.rebootEnemies 
-
     if (app.state.rebootEnemies.length > 10) {
 
-        for (let i = 0; i < newTargets.length; i++) {
-            let newEnemy = newTargets[i]
-            app.createEnemies(app.game.area, newEnemy.x, newEnemy.y)
-        }
+        app.state.rebootEnemies.forEach(reboot => {
+            app.createEnemies(app.game.area, reboot.x, reboot.y)
+        })
 
         app.state.rebootEnemies = []
     }
 }
-
-
 
 app.update = () => {
     const currentTime = Date.now();
@@ -314,30 +297,24 @@ app.update = () => {
     app.state.lastTime = currentTime;
 
     app.movePlayer(delta, app.game.area)
+    app.moveLasers(delta, app.game.area)
 
-    
+    app.moveEnemies()
     app.rebootEnemies()
+
     app.printScore()
 
-  
-    app.moveEnemies()
-    
-
-
-    app.moveLasers(delta, app.game.area)
-    
     window.requestAnimationFrame(app.update)
 }
 
 app.init = function () {
     app.createPlayer()
-    app.setEnemies()
+    app.createGrid()
     app.createInstructions()
     
 }
 
 app.init()
-
 window.addEventListener("keydown", app.isKeyDown) 
 window.addEventListener("keyup", app.isKeyUp) 
 window.requestAnimationFrame(app.update)
@@ -350,3 +327,5 @@ window.requestAnimationFrame(app.update)
 // https://isaacsukin.com/news/2015/01 detailed-explanation-javascript-game-loops-and-timing#timing-problems
 // Frederik De Bleser's youtube tutorials on Creating Space Invaders 
 // Academy Space Invaders - https://github.com/keephopealive/academy-space-invaders
+// https://hackernoon.com/math-sin-and-math-cos-the-creative-coders-best-friend-597d69000644
+// Creating grids with JavaScript - https://codepen.io/nakessler/pen/qOdJWm
