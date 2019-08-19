@@ -46,7 +46,7 @@ h1, h2 {
     transition: all 0.5s;
 }
 
-.start-game {
+.player-instructions {
   font-family: 'Alegreya Sans', sans-serif;
   text-transform: uppercase;
   letter-spacing: 2px;
