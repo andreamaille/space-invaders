@@ -41,7 +41,7 @@ h1, h2 {
     letter-spacing: 2px;
     transform: skew(-10deg);
     transform: rotate(-5deg);
-    animation: neon1 1.5s ease-in-out infinite alternate;
+    /* animation: neon1 1.5s ease-in-out infinite alternate; */
     transition: all 0.5s;
 }
 
@@ -63,12 +63,20 @@ h1, h2 {
 
 
 
-@-webkit-keyframes neon1 {
+@keyframes neon1 {
   from {
-    text-shadow: 0 0 4px #fefefe, 0 0 5px #fefefe, 0 0 7.5px #fefefe, 0 0 10px blueviolet, 0 0 17.5px blueviolet, 0 0 40px blueviolet, 0 0 50px blueviolet, 0 0 75px blueviolet;
+    text-shadow: 0 0 4px #fefefe, 
+    0 0 5px #fefefe, 
+    0 0 7.5px #fefefe, 
+    0 0 10px blueviolet, 
+    0 0 17.5px blueviolet, 
+    0 0 40px blueviolet, 
+    0 0 50px blueviolet, 
+    0 0 75px blueviolet;
   }
   to {
-    text-shadow: 0 0 4px #fefefe, 0 0 5px #fefefe, 0 0 7.5px #fefefe, 0 0 10px blueviolet, 0 0 17.5px blueviolet, 0 0 20px blueviolet, 0 0 25px blueviolet, 0 0 35px blueviolet;
+    text-shadow: 0 0 4px #fefefe, 
+    0 0 5px #fefefe, 0 0 7.5px #fefefe, 0 0 10px blueviolet, 0 0 17.5px blueviolet, 0 0 20px blueviolet, 0 0 25px blueviolet, 0 0 35px blueviolet;
   }
 }
 
@@ -115,7 +123,7 @@ h1, h2 {
     height:100vh;
     margin: 0 auto;
     background: url(../assets/background-1.png);
-    animation: scroll-background 5s linear infinite;
+    /* animation: scroll-background 5s linear infinite; */
     background-position: contain;
     background-color: rgb(3, 3, 22);
     position: relative;
@@ -126,6 +134,7 @@ h1, h2 {
   margin: 0 auto;
   width:70%;
   height:100%;
+  position:relative;
 }
 
 
@@ -148,8 +157,6 @@ h1, h2 {
     background: url(../assets/enemy.png) center center / cover no-repeat;
     height:60px;
 }
-
-
 
 
 .player {
@@ -223,8 +230,36 @@ button {
 
 
 
+/* 
+header {
+    background-color:rgb(3, 3, 22);
+    max-width: 1450px;
+    width:100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+} */
+/* 
+@media (max-width: 1000px) {
+  header {
+    flex-direction: column;
+  }
 
+  .game-info{
+    width:100%;
+    border-right: none;
+    border-bottom: 1px solid #fefefe;
+    margin-bottom: 25px;
+  }
 
+  .game-area {
+    width:100%;
+  }
+
+}
+
+ */
 
 
 

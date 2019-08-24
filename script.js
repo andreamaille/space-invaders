@@ -2,7 +2,7 @@ const app = {}
 
 app.game = {
     area: document.querySelector(".game-area"),
-    width: 700,
+    width: 600,
     height: 600
 }
 
@@ -25,7 +25,7 @@ app.laser = {
 
 app.grid = {
     itemsPerRow: 8,  
-    padding: 100
+    padding: 90
 }
 
 app.state = {
@@ -135,6 +135,7 @@ app.timer = () => {
         }
     }, 1000);
 }
+
 
 app.resultsModule = () => {
     const header = document.querySelector('header');
@@ -291,37 +292,38 @@ app.rebootEnemies = () => {
 
 app.update = () => {
     const currentTime = Date.now();
-
+    
     const delta = (currentTime - app.state.lastTime) / 1000
 
     app.state.lastTime = currentTime;
 
     app.movePlayer(delta, app.game.area)
+
     app.moveLasers(delta, app.game.area)
 
     app.moveEnemies()
+    
     app.rebootEnemies()
 
     app.printScore()
 
-    window.requestAnimationFrame(app.update)
+    requestAnimationFrame(app.update)
+
+    
 }
 
 app.init = function () {
     app.createPlayer()
     app.createGrid()
     app.createInstructions()
-    
 }
 
 app.init()
 
+
 window.addEventListener("keydown", app.isKeyDown) 
 window.addEventListener("keyup", app.isKeyUp) 
 window.requestAnimationFrame(app.update)
-
-
-
 
 
 
