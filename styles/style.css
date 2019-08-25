@@ -29,6 +29,7 @@ html {
 
 header {
     background-color:rgb(3, 3, 22);
+    background: url(../assets/background-1.png);
     max-width: 1450px;
     width:100%;
     height:100vh;
@@ -88,6 +89,7 @@ h2 {
   width:35%;
   height:100%;
   border-right: 1px solid #fefefe;
+  background-color:rgb(3, 3, 22);
 }
 
 
@@ -129,9 +131,10 @@ h2 {
 
 .game-area {
   margin: 0 auto;
-  width:70%;
+  width:100%;
   height:100%;
   position:relative;
+  overflow: hidden;
 }
 
 @keyframes dynamic-background {
@@ -184,6 +187,23 @@ h2 {
     background: url(../assets/laser-player.png) center center / cover no-repeat;
 }
 
+.flower {
+    position: absolute;
+    margin-left: -2.5px;
+    height: 40px;
+    width:10px;   
+    background: url(../assets/flower.png) center center / cover no-repeat;
+}
+
+
+
+.controls {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  bottom:10%;
+}
 
 /* Module */
 .module{
@@ -356,5 +376,55 @@ button:hover {
   }
   49.01% {
     opacity: 1;
+  }
+}
+
+
+@media (max-width: 1000px) {
+  h1 {
+    font-size: 50px;
+  }
+
+  .game-stats p {
+    padding:5px;
+    font-size: 18px;
+  }
+
+}
+
+@media (max-width: 800px) {
+  h1 {
+    transform: rotate(0deg);
+    padding:10px;
+    margin:10px;
+  }
+
+  p {
+    font-size: 18px;
+  }
+
+  header {
+    flex-direction: column;
+    /* overflow: visible; */
+    height:150vh;
+  }
+
+  .game-info {
+    width: 100%;
+    height:60vh;
+  }
+
+  .game-area {
+    overflow: visible;
+  }
+
+  .game-content {
+    width: 100%;
+    height:100%;
+  }
+
+  .game-stats p {
+    font-size:18px;
+    margin: 5px 0;
   }
 }

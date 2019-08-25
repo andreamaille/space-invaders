@@ -26,7 +26,7 @@ app.keyCodes = {
 }
 
 app.player = {
-    width: 80,
+    width: 0,
     speed: 500,
     delay: 0
 }
@@ -55,7 +55,9 @@ app.state = {
     score: 0,
     timer: 20,
     userName: '',
-    highScores: []
+    highScores: [],
+    screenControls: false,
+    peaceMode: false
 }
 
 app.start = () => {
@@ -169,7 +171,7 @@ app.resultsModule = () => {
 
     resultsContainer.innerHTML = `
         <h2>Nice!</h2>
-        <p>You shot down ${app.state.score} alien spacecrafts!</p>
+        <p>You hit ${app.state.score} alien spacecrafts!</p>
         <form action="" class="form">
             <legend>Submit your score!</legend>
             <label for="userName" class="visuallyHidden">Name</label>
@@ -265,9 +267,6 @@ app.getHighScores = () => {
 
 }
 
-
-
-
 app.createPlayer = () => {
 
     // initial position
@@ -306,7 +305,11 @@ app.movePlayer = (delta, gameArea) => {
 app.createLaser = (gameArea, x, y) => {
     const container = document.createElement('div');
 
-    container.className = 'laser'
+    if (app.state.peaceMode) {
+        container.className = 'flower'
+    } else {
+        container.className = 'laser'
+    }
 
     gameArea.appendChild(container)
 
@@ -320,7 +323,6 @@ app.createLaser = (gameArea, x, y) => {
 
     app.setPosition(container, x, y)
 }
-
 
 app.moveLasers = (delta, element) => {
     const lasers = app.state.lasers
@@ -372,7 +374,6 @@ app.moveLasers = (delta, element) => {
         }
     }
 }
-
 
 app.moveEnemies = () => {
     const updateX = Math.sin(app.state.lastTime / 1000.0) * 70;
@@ -430,13 +431,11 @@ app.update = () => {
 
     app.state.lastTime = currentTime;
 
-
-
     app.movePlayer(delta, app.game.area)
 
     app.moveLasers(delta, app.game.area)
 
-    app.moveEnemies()
+    // app.moveEnemies()
     
     app.rebootEnemies()
 
@@ -455,13 +454,96 @@ app.init = function () {
 
 app.init()
 
-window.addEventListener("keydown", app.isKeyDown) 
+
+
+window.addEventListener("keydown", app.isKeyDown)
 window.addEventListener("keyup", app.isKeyUp) 
 window.requestAnimationFrame(app.update)
 
+app.showControls = () => {
+    const checkbox = document.getElementById("show-controls")
+
+    if (checkbox.checked) {
+        app.state.screenControls = true
+        app.mediaQuery(screen)
+    } 
+
+    if (checkbox.checked === false) {
+        app.state.screenControls = false
+
+        const controls = document.querySelector('.controls');
+
+        app.game.area.removeChild(controls)
+    }
+    
+}
+
+
+app.peaceMode = () => {
+    const checkbox = document.getElementById("peace-mode")
+
+    if (checkbox.checked) {
+        app.state.peaceMode = true
+    } else {
+        app.state.peaceMode = false
+    }
+}
 
 
 
+
+app.mediaQuery = (screen) => {
+    if (screen.matches || app.state.screenControls) { 
+        const controls = document.createElement('div')
+        controls.className = 'controls'
+
+        controls.innerHTML = `
+        <button class='left' id='left'>⇦</button>
+        <button class='space' id='space'>Shoot!</button>
+        <button class='right' id='right'>⇨</button>
+        `
+
+        app.game.area.appendChild(controls)
+
+        app.screenControls()
+    } 
+
+    if (screen.matches) {
+        app.removeInstructions()
+    }
+}
+
+app.screenControls = () => {
+    const right = document.getElementById("right")
+
+    right.addEventListener("click", () => {
+        app.state.playerX += 30
+    })
+
+    const left = document.getElementById("left")
+
+    left.addEventListener("click", () => {
+        app.state.playerX -= 30
+        app.state.playerX = app.bind(app.state.playerX, app.player.width / 2, app.game.width - app.player.width)
+    })
+
+    const space = document.getElementById("space")
+
+    space.addEventListener("click", () => {
+        app.state.startGame = true
+        app.createLaser(app.game.area, app.state.playerX, app.state.playerY)
+        app.player.delay = app.laser.delay
+        app.start()
+    }) 
+}
+
+
+
+
+
+const screen = window.matchMedia("(max-width: 800px)")
+app.mediaQuery(screen) // Call listener function at run time
+screen.addListener(app.mediaQuery) // Attach listener function on state changes 
 
 
 // Resources: 

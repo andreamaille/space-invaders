@@ -18,8 +18,16 @@
                     <p id ='countdown'>Time: 20</p>
                 </div>
                 <div class="instructions">
-                    <p>Aliens are attacking! Use the left and right arrows to move and space bar to shoot as many enemies within 20 seconds.</p>
+                    <p>Aliens are attacking! Shoot as many enemies within 20 seconds. Use right/left arrows to move and space bar to shoot</p>
                 </div>
+                <form class="options">
+                    <input type="checkbox" id="show-controls" onclick="app.showControls()">
+                    <label for="switch1" class="toggleLabel">OnScreen Controls</label>
+
+                    <input type="checkbox" id="peace-mode" onclick="app.peaceMode()">
+                    <label for="switch1" class="toggleLabel">Peace Mode</label>
+
+                </form>
             </div>
         </section>
         <section class="game-content">
