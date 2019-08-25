@@ -1,5 +1,18 @@
 const app = {}
 
+app.firebaseConfig = {
+    apiKey: "AIzaSyBAv24JoMcciV5kqz_XL5Gim14jRSL__hw",
+    authDomain: "space-attack-de8e9.firebaseapp.com",
+    databaseURL: "https://space-attack-de8e9.firebaseio.com",
+    projectId: "space-attack-de8e9",
+    storageBucket: "",
+    messagingSenderId: "968811862965",
+    appId: "1:968811862965:web:728b3574c0fd7aee"
+};
+
+firebase.initializeApp(app.firebaseConfig);
+const dbRef = firebase.database().ref();
+
 app.game = {
     area: document.querySelector(".game-area"),
     width: 600,
@@ -40,7 +53,9 @@ app.state = {
     enemies: [],
     rebootEnemies: [],
     score: 0,
-    timer: 20
+    timer: 2,
+    userName: '',
+    highScores: []
 }
 
 app.start = () => {
@@ -108,7 +123,7 @@ app.printScore = () => {
 
 app.createInstructions = () => {
     const playerInstructions = document.createElement('div')
-    playerInstructions.innerHTML = "Click space bar to begin";
+    playerInstructions.innerHTML = "Hit space bar to begin";
     playerInstructions.className = 'player-instructions'
     
     app.game.area.appendChild(playerInstructions)
@@ -124,36 +139,134 @@ app.timer = () => {
     
     const countdownContainer = document.getElementById('countdown');
 
-    setInterval(() => {
-        if (timeRemaining === 0 && app.state.startGame === true) {
+    const countdownTimer = setInterval(() => {
+        countdownContainer.innerHTML = `Time: ${timeRemaining}`
+        timeRemaining -= 1
+
+        if (timeRemaining <= 0 && app.state.startGame === true) {
             app.state.startGame = false
+            clearInterval(countdownTimer)
             countdownContainer.innerHTML = `TIMES UP!`
             app.resultsModule()
-        } else {
-            countdownContainer.innerHTML = `Time: ${timeRemaining}`
-            timeRemaining--;
-        }
+            
+        } 
     }, 1000);
 }
 
-
 app.resultsModule = () => {
     const header = document.querySelector('header');
+
+    const module = document.createElement('div')
+    module.className = 'module'
+
+    const highScoresContainer = document.createElement('div')
+    highScoresContainer.className = 'highScores'
+
+
     const resultsContainer = document.createElement('div')
+    resultsContainer.className = 'results'
+
 
     resultsContainer.innerHTML = `
         <h2>Nice!</h2>
         <p>You shot down ${app.state.score} alien spacecrafts!</p>
-        <button id='restart-button' onclick="app.restart()">Play Again?</button>`;
+        <form action="" class="form">
+            <legend>Submit your score!</legend>
+            <label for="userName" class="visuallyHidden">Name</label>
+            <input type="text" name="userName" placeholder="Name" id="userName" required>
+            <input type="submit" id='restart-button' value="Submit">
+        </form>
+        <button id='restart-button' onclick="app.restart()">Play Again?</button>
+        `;
 
-    resultsContainer.className = 'results'
+    let currentScores = []
 
-    header.appendChild(resultsContainer)
+    app.state.highScores.map(users => {
+        return users.map(user => {
+            const userDetails = `<li>${user.name} - ${user.score} Hits </li>`
+            currentScores.push(userDetails)
+        })
+    })
+
+    highScoresContainer.innerHTML = 
+        `<h2>High Scores</h2>
+        <ol>` + currentScores.join(" ") + `</ol>`
+
+
+
+    module.appendChild(highScoresContainer)
+    module.appendChild(resultsContainer)
+    header.appendChild(module)
+
+    app.submitForm()
 }
 
 app.restart = () => {
     location.reload(true)
 }
+
+app.submitForm = (e) => {
+    const resultsContainer = document.querySelector('.results')
+    const form = document.querySelector('.form')
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault()
+        const userInput = document.getElementById('userName').value
+
+        const userResults = {
+            name: userInput,
+            score: app.state.score
+        }
+
+        dbRef.push(userResults);
+
+        resultsContainer.innerHTML = `
+        <h2>Nice!</h2>
+        <p>You shot down ${app.state.score} alien spacecrafts!</p>
+        <form action="" class="form">
+            <p>Thank you! You're score has been added!</p>
+            <button id='restart-button' onclick="app.restart()">Play Again?</button>
+        </form>`;
+    })
+
+}
+
+app.getHighScores = () => {
+    const dbRef = firebase.database().ref()
+
+    let array = []
+    dbRef.on('value', (response) => {
+        const data = response.val()
+
+        let highScores = []
+
+        for (let key in data) {
+            highScores.push({
+                name: data[key].name,
+                score: data[key].score
+            })
+        }
+
+        highScores.sort(function (a, b) {
+            if (a.score > b.score) {
+                return -1;;
+            } else if (b.score > a.score) {
+                return 1;;
+            } else {
+                return 0;
+            }
+        });
+
+        highScores = highScores.splice(0,10)
+
+        app.state.highScores.push(highScores)
+
+    })
+
+}
+
+
+
 
 app.createPlayer = () => {
 
@@ -208,8 +321,13 @@ app.createLaser = (gameArea, x, y) => {
     app.setPosition(container, x, y)
 }
 
-app.moveLasers = (delta, element) => { 
-    app.state.lasers.map(laser => {
+
+app.moveLasers = (delta, element) => {
+    const lasers = app.state.lasers
+    
+
+    for (let i = 0; i < lasers.length; i++) {
+        const laser = lasers[i];
         const rect1 = laser.container.getBoundingClientRect();
 
         laser.y -= delta * app.laser.speed;
@@ -217,33 +335,48 @@ app.moveLasers = (delta, element) => {
         if (laser.y < 0) {
             element.removeChild(laser.container)
             laser.isExpired = true
-            app.state.lasers = app.state.lasers.filter(laser => !laser.isExpired)
+            app.state.lasers = lasers.filter(laser => !laser.isExpired)
         }
 
         app.setPosition(laser.container, laser.x, laser.y)
 
-        app.state.enemies.map(enemy => {
+        const enemies = app.state.enemies;
+        for (let a = 0; a < enemies.length; a++) {
+            const enemy = enemies[a];
+
+            if (enemy.isExpired) continue;
+
             const rect2 = enemy.container.getBoundingClientRect();
 
             if (app.collisionDetection(rect1, rect2)) {
-                app.state.score += 1
-                
+
+                app.state.score = app.state.score + 1
+
+                // Enemy was hit
                 element.removeChild(laser.container)
                 laser.isExpired = true
-                app.state.lasers = app.state.lasers.filter(laser => !laser.isExpired)
-                app.state.rebootEnemies.push(enemy)
+                app.state.lasers = lasers.filter(laser => !laser.isExpired)
+                
 
                 element.removeChild(enemy.container)
                 enemy.isExpired = true
-                app.state.enemies = app.state.enemies.filter(enemy => !enemy.isExpired)
+                app.state.enemies = enemies.filter(enemy => !enemy.isExpired)
+
+                app.state.rebootEnemies.push(enemy)
+
+                app.printScore()
+                app.rebootEnemies()
+
+                break;
             }
-        })
-    })
+        }
+    }
 }
 
+
 app.moveEnemies = () => {
-    const updateX = Math.sin(app.state.lastTime / 1000.0) * app.game.height / 10;
-    const updateY = Math.cos(app.state.lastTime / 1000.0) * app.game.width / 6;
+    const updateX = Math.sin(app.state.lastTime / 1000.0) * 70;
+    const updateY = Math.cos(app.state.lastTime / 1000.0) * 50;
 
     app.state.enemies.forEach(enemy => {
         const x = enemy.x + updateX
@@ -292,10 +425,12 @@ app.rebootEnemies = () => {
 
 app.update = () => {
     const currentTime = Date.now();
-    
+
     const delta = (currentTime - app.state.lastTime) / 1000
 
     app.state.lastTime = currentTime;
+
+
 
     app.movePlayer(delta, app.game.area)
 
@@ -308,7 +443,6 @@ app.update = () => {
     app.printScore()
 
     requestAnimationFrame(app.update)
-
     
 }
 
@@ -316,14 +450,16 @@ app.init = function () {
     app.createPlayer()
     app.createGrid()
     app.createInstructions()
+    app.getHighScores()
 }
 
 app.init()
 
-
 window.addEventListener("keydown", app.isKeyDown) 
 window.addEventListener("keyup", app.isKeyUp) 
 window.requestAnimationFrame(app.update)
+
+
 
 
 
@@ -334,4 +470,3 @@ window.requestAnimationFrame(app.update)
 // Academy Space Invaders - https://github.com/keephopealive/academy-space-invaders
 // https://hackernoon.com/math-sin-and-math-cos-the-creative-coders-best-friend-597d69000644
 // Creating grids with JavaScript - https://codepen.io/nakessler/pen/qOdJWm
-// Neon text - https://codepen.io/FelixRilling/pen/qzfoc
