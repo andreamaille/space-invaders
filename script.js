@@ -53,7 +53,7 @@ app.state = {
     enemies: [],
     rebootEnemies: [],
     score: 0,
-    timer: 2,
+    timer: 20,
     userName: '',
     highScores: []
 }

@@ -190,16 +190,15 @@ h2 {
   background-color:blueviolet;
   margin:0 auto;
   width:80%;
-  height: 60vh;
+  height: 90vh;
   position: absolute;
-  top: 10%;
-  bottom:10%;
   padding:10px;
   font-size: 25px;
   text-align: center;
   border-radius: 25px;
   border: 3px solid #fefefe;
   display: flex;
+  align-items: center;
 }
 
 
@@ -212,6 +211,7 @@ h2 {
 .highScores {
   width:50%;
   height:100%;
+  border-right: 3px solid #fefefe;  
 }
 
 .highScores li {
