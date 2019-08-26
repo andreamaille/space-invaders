@@ -338,7 +338,6 @@ h2 {
 
 .highScores li {
   font-size: 18px;
-  text-align: right;
   line-height: 1.1;
   padding:0;
   margin:0;
@@ -364,10 +363,6 @@ h2 {
 
 .high-scores-module span:hover {
   color:rgb(45, 14, 75);
-}
-
-.high-scores-module li {
-  text-align:right;
 }
 
 .results p {
