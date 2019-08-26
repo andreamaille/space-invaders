@@ -16,7 +16,8 @@ const dbRef = firebase.database().ref();
 app.game = {
     area: document.querySelector(".game-area"),
     width: 600,
-    height: 600
+    height: 600,
+    screen: window.matchMedia("(max-width: 800px)")
 }
 
 app.keyCodes = {
@@ -175,7 +176,7 @@ app.resultsModule = () => {
         <form action="" class="form">
             <legend>Submit your score!</legend>
             <label for="userName" class="visuallyHidden">Name</label>
-            <input type="text" name="userName" placeholder="Name" id="userName" required>
+            <input type="text" name="userName" placeholder="Name" id="userName" maxlength="10" required>
             <input type="submit" id='restart-button' value="Submit">
         </form>
         <button id='restart-button' onclick="app.restart()">Play Again?</button>
@@ -192,15 +193,51 @@ app.resultsModule = () => {
 
     highScoresContainer.innerHTML = 
         `<h2>High Scores</h2>
-        <ol>` + currentScores.join(" ") + `</ol>`
-
-
+        <div class="leader-boards">
+            <ol>` + currentScores.join(" ") + `</ol>
+        </div>
+        `
 
     module.appendChild(highScoresContainer)
     module.appendChild(resultsContainer)
     header.appendChild(module)
 
     app.submitForm()
+}
+
+app.displayHighScores = () => {
+    const header = document.querySelector('header');
+
+    const highScoresContainer = document.createElement('div')
+    highScoresContainer.className = 'high-scores-module'
+
+    let currentScores = []
+
+    app.state.highScores.map(users => {
+        return users.map(user => {
+            const userDetails = `<li>${user.name} - ${user.score} Hits </li>`
+            currentScores.push(userDetails)
+        })
+    })
+
+    highScoresContainer.innerHTML =
+        `<span onclick="app.closeModule()">˟</span>
+        <h2>High Scores</h2 >
+        <div class="leader-boards">
+            <ol>` + currentScores.join(" ") + `</ol>
+        </div>`
+
+    header.appendChild(highScoresContainer)
+
+}
+
+app.closeModule = () => {
+    const header = document.querySelector('header');
+    
+    const module = document.querySelector('.high-scores-module');
+
+    header.removeChild(module)
+
 }
 
 app.restart = () => {
@@ -343,6 +380,7 @@ app.moveLasers = (delta, element) => {
         app.setPosition(laser.container, laser.x, laser.y)
 
         const enemies = app.state.enemies;
+
         for (let a = 0; a < enemies.length; a++) {
             const enemy = enemies[a];
 
@@ -435,7 +473,7 @@ app.update = () => {
 
     app.moveLasers(delta, app.game.area)
 
-    // app.moveEnemies()
+    app.moveEnemies()
     
     app.rebootEnemies()
 
@@ -455,17 +493,12 @@ app.init = function () {
 app.init()
 
 
-
-window.addEventListener("keydown", app.isKeyDown)
-window.addEventListener("keyup", app.isKeyUp) 
-window.requestAnimationFrame(app.update)
-
 app.showControls = () => {
     const checkbox = document.getElementById("show-controls")
 
     if (checkbox.checked) {
         app.state.screenControls = true
-        app.mediaQuery(screen)
+        app.mediaQuery(app.game.screen)
     } 
 
     if (checkbox.checked === false) {
@@ -478,7 +511,6 @@ app.showControls = () => {
     
 }
 
-
 app.peaceMode = () => {
     const checkbox = document.getElementById("peace-mode")
 
@@ -488,9 +520,6 @@ app.peaceMode = () => {
         app.state.peaceMode = false
     }
 }
-
-
-
 
 app.mediaQuery = (screen) => {
     if (screen.matches || app.state.screenControls) { 
@@ -538,12 +567,14 @@ app.screenControls = () => {
 }
 
 
+app.mediaQuery(app.game.screen)
+app.game.screen.addListener(app.mediaQuery)
+window.addEventListener("keydown", app.isKeyDown)
+window.addEventListener("keyup", app.isKeyUp)
+window.requestAnimationFrame(app.update)
 
 
 
-const screen = window.matchMedia("(max-width: 800px)")
-app.mediaQuery(screen) // Call listener function at run time
-screen.addListener(app.mediaQuery) // Attach listener function on state changes 
 
 
 // Resources: 
