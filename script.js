@@ -11,7 +11,6 @@ app.firebaseConfig = {
 };
 
 firebase.initializeApp(app.firebaseConfig);
-const dbRef = firebase.database().ref();
 
 app.game = {
     area: document.querySelector(".game-area"),
@@ -29,17 +28,12 @@ app.keyCodes = {
 app.player = {
     width: 0,
     speed: 500,
-    delay: 0
+    delay: 0.3
 }
 
 app.laser = {
     speed: 300,
     delay: 0.3
-}
-
-app.grid = {
-    itemsPerRow: 8,  
-    padding: 90
 }
 
 app.state = {
@@ -100,12 +94,11 @@ app.setPosition = (element, x, y) => {
 }
 
 app.collisionDetection = (rect1, rect2) => {
-    return !(
-        rect2.left > rect1.right ||
+    return !(rect2.left > rect1.right ||
         rect2.right < rect1.left ||
         rect2.top > rect1.bottom ||
-        rect2.bottom < rect1.top
-    )
+        rect2.bottom < rect1.top) 
+        
 }
 
 app.bind = (value, min, max) => {
@@ -120,7 +113,6 @@ app.bind = (value, min, max) => {
 
 app.printScore = () => {
     const element = document.getElementById('score')
-
     element.innerHTML = `Score: ${app.state.score}`;
 }
 
@@ -128,7 +120,6 @@ app.createInstructions = () => {
     const playerInstructions = document.createElement('div')
     playerInstructions.innerHTML = "Hit space bar to begin";
     playerInstructions.className = 'player-instructions'
-    
     app.game.area.appendChild(playerInstructions)
 }
 
@@ -232,12 +223,9 @@ app.displayHighScores = () => {
 }
 
 app.closeModule = () => {
-    const header = document.querySelector('header');
-    
+    const header = document.querySelector('header');  
     const module = document.querySelector('.high-scores-module');
-
     header.removeChild(module)
-
 }
 
 app.restart = () => {
@@ -362,11 +350,7 @@ app.createLaser = (gameArea, x, y) => {
 }
 
 app.moveLasers = (delta, element) => {
-    const lasers = app.state.lasers
-    
-
-    for (let i = 0; i < lasers.length; i++) {
-        const laser = lasers[i];
+    app.state.lasers.map(laser => {
         const rect1 = laser.container.getBoundingClientRect();
 
         laser.y -= delta * app.laser.speed;
@@ -374,48 +358,34 @@ app.moveLasers = (delta, element) => {
         if (laser.y < 0) {
             element.removeChild(laser.container)
             laser.isExpired = true
-            app.state.lasers = lasers.filter(laser => !laser.isExpired)
+            app.state.lasers = app.state.lasers.filter(laser => !laser.isExpired)
         }
 
         app.setPosition(laser.container, laser.x, laser.y)
 
-        const enemies = app.state.enemies;
-
-        for (let a = 0; a < enemies.length; a++) {
-            const enemy = enemies[a];
-
-            if (enemy.isExpired) continue;
-
+        app.state.enemies.map(enemy => {
             const rect2 = enemy.container.getBoundingClientRect();
 
-            if (app.collisionDetection(rect1, rect2)) {
+            if (app.collisionDetection(rect1, rect2) || enemy.isExpired) {
+                app.state.score += 1
 
-                app.state.score = app.state.score + 1
-
-                // Enemy was hit
                 element.removeChild(laser.container)
                 laser.isExpired = true
-                app.state.lasers = lasers.filter(laser => !laser.isExpired)
-                
+                app.state.lasers = app.state.lasers.filter(laser => !laser.isExpired)
+                app.state.rebootEnemies.push(enemy)
 
                 element.removeChild(enemy.container)
                 enemy.isExpired = true
-                app.state.enemies = enemies.filter(enemy => !enemy.isExpired)
-
-                app.state.rebootEnemies.push(enemy)
-
-                app.printScore()
-                app.rebootEnemies()
-
-                break;
+                app.state.enemies = app.state.enemies.filter(enemy => !enemy.isExpired)
             }
-        }
-    }
+        })
+    })
 }
 
+
 app.moveEnemies = () => {
-    const updateX = Math.sin(app.state.lastTime / 1000.0) * 70;
-    const updateY = Math.cos(app.state.lastTime / 1000.0) * 50;
+    const updateX = Math.sin(app.state.lastTime / 1000.0) * app.game.width / 10;
+    const updateY = Math.cos(app.state.lastTime / 1000.0) * app.game.height / 8;
 
     app.state.enemies.forEach(enemy => {
         const x = enemy.x + updateX
@@ -426,10 +396,9 @@ app.moveEnemies = () => {
 
 app.createGrid = () => {
     for (let row = 1; row <= 3; row++) {
-        const y = row * app.grid.padding
-
-        for (let column = 0; column < app.grid.itemsPerRow; column++) {
-            const x = column * app.grid.padding
+        const y = row * 90
+        for (let column = 0; column < 8; column++) {
+            const x = column * 90
             app.createEnemies(app.game.area, x, y)
         }
     }
@@ -462,35 +431,6 @@ app.rebootEnemies = () => {
     }
 }
 
-app.update = () => {
-    const currentTime = Date.now();
-
-    const delta = (currentTime - app.state.lastTime) / 1000
-
-    app.state.lastTime = currentTime;
-
-    app.movePlayer(delta, app.game.area)
-
-    app.moveLasers(delta, app.game.area)
-
-    app.moveEnemies()
-    
-    app.rebootEnemies()
-
-    app.printScore()
-
-    requestAnimationFrame(app.update)
-    
-}
-
-app.init = function () {
-    app.createPlayer()
-    app.createGrid()
-    app.createInstructions()
-    app.getHighScores()
-}
-
-app.init()
 
 
 app.showControls = () => {
@@ -544,20 +484,17 @@ app.mediaQuery = (screen) => {
 
 app.screenControls = () => {
     const right = document.getElementById("right")
-
     right.addEventListener("click", () => {
         app.state.playerX += 30
     })
 
     const left = document.getElementById("left")
-
     left.addEventListener("click", () => {
         app.state.playerX -= 30
         app.state.playerX = app.bind(app.state.playerX, app.player.width / 2, app.game.width - app.player.width)
     })
 
     const space = document.getElementById("space")
-
     space.addEventListener("click", () => {
         app.state.startGame = true
         app.createLaser(app.game.area, app.state.playerX, app.state.playerY)
@@ -566,11 +503,44 @@ app.screenControls = () => {
     }) 
 }
 
+app.update = () => {
+    const currentTime = Date.now();
+
+    const delta = (currentTime - app.state.lastTime) / 800
+
+    app.state.lastTime = currentTime;
+
+    app.movePlayer(delta, app.game.area)
+
+    app.moveLasers(delta, app.game.area)
+
+    app.moveEnemies()
+
+    app.rebootEnemies()
+
+    app.printScore()
+
+    requestAnimationFrame(app.update)
+
+}
+
+app.init = function () {
+    app.createPlayer()
+    app.createGrid()
+    app.createInstructions()
+    app.getHighScores()
+}
+
+app.init()
+
+
 
 app.mediaQuery(app.game.screen)
 app.game.screen.addListener(app.mediaQuery)
+
 window.addEventListener("keydown", app.isKeyDown)
 window.addEventListener("keyup", app.isKeyUp)
+
 window.requestAnimationFrame(app.update)
 
 
@@ -579,7 +549,8 @@ window.requestAnimationFrame(app.update)
 
 // Resources: 
 // https://isaacsukin.com/news/2015/01 detailed-explanation-javascript-game-loops-and-timing#timing-problems
-// Frederik De Bleser's youtube tutorials - Creating Space Invaders 
+// Frederik De Bleser's youtube tutorials - Creating Space Invaders - https://www.youtube.com/watch?v=H5Stvl_kzag
 // Academy Space Invaders - https://github.com/keephopealive/academy-space-invaders
+// 
 // https://hackernoon.com/math-sin-and-math-cos-the-creative-coders-best-friend-597d69000644
 // Creating grids with JavaScript - https://codepen.io/nakessler/pen/qOdJWm
