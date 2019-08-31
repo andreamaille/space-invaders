@@ -26,7 +26,7 @@ app.keyCodes = {
 }
 
 app.player = {
-    width: 0,
+    width: 10,
     speed: 500,
     delay: 0.3
 }
@@ -39,12 +39,12 @@ app.laser = {
 app.state = {
     startGame: undefined,
     lastTime: Date.now(),
-    playerX:0,
-    playerY:0,
+    playerX: 0,
+    playerY: 0,
     isLeftKeyDown: false,
     isRightKeyDown: false,
     isSpaceKeyDown: false,
-    lasers:[],
+    lasers: [],
     enemies: [],
     rebootEnemies: [],
     score: 0,
@@ -62,12 +62,26 @@ app.start = () => {
     }
 }
 
+app.createGrid = () => {
+    for (let row = 1; row <= 3; row++) {
+        const y = row * 90
+        for (let column = 0; column < 8; column++) {
+            const x = column * 90
+            app.createEnemies(app.game.area, x, y)
+        }
+    }
+}
+
 app.isKeyDown = (e) => {
     if (e.keyCode === app.keyCodes.left) {
         app.state.isLeftKeyDown = true
-    } else if (e.keyCode === app.keyCodes.right) {
+    } 
+    
+    if (e.keyCode === app.keyCodes.right) {
         app.state.isRightKeyDown = true
-    } else if (e.keyCode === app.keyCodes.spaceBar) {
+    } 
+    
+    if (e.keyCode === app.keyCodes.spaceBar) {
         e.preventDefault()
         app.state.isSpaceKeyDown = true
     }
@@ -81,9 +95,13 @@ app.isKeyDown = (e) => {
 app.isKeyUp = (e) => {
     if (e.keyCode === app.keyCodes.left) {
         app.state.isLeftKeyDown = false
-    } else if (e.keyCode === app.keyCodes.right) {
+    } 
+
+    if (e.keyCode === app.keyCodes.right) {
         app.state.isRightKeyDown = false
-    } else if (e.keyCode === app.keyCodes.spaceBar) {
+    }
+
+    if (e.keyCode === app.keyCodes.spaceBar) {
         e.preventDefault()
         app.state.isSpaceKeyDown = false
     }
@@ -156,10 +174,8 @@ app.resultsModule = () => {
     const highScoresContainer = document.createElement('div')
     highScoresContainer.className = 'highScores'
 
-
     const resultsContainer = document.createElement('div')
     resultsContainer.className = 'results'
-
 
     resultsContainer.innerHTML = `
         <h2>Nice!</h2>
@@ -261,7 +277,6 @@ app.submitForm = (e) => {
 app.getHighScores = () => {
     const dbRef = firebase.database().ref()
 
-    let array = []
     dbRef.on('value', (response) => {
         const data = response.val()
 
@@ -350,38 +365,51 @@ app.createLaser = (gameArea, x, y) => {
 }
 
 app.moveLasers = (delta, element) => {
-    app.state.lasers.map(laser => {
+    const lasers = app.state.lasers
+    const enemies = app.state.enemies;
+
+    for (let i = 0; i < lasers.length; i++) {
+        const laser = lasers[i];
         const rect1 = laser.container.getBoundingClientRect();
 
         laser.y -= delta * app.laser.speed;
 
-        if (laser.y < 0) {
+        if (laser.y < -10) {
             element.removeChild(laser.container)
             laser.isExpired = true
-            app.state.lasers = app.state.lasers.filter(laser => !laser.isExpired)
+            app.state.lasers = lasers.filter(laser => !laser.isExpired)
         }
 
         app.setPosition(laser.container, laser.x, laser.y)
 
-        app.state.enemies.map(enemy => {
+        for (let a = 0; a < enemies.length; a++) {
+            const enemy = enemies[a];
+
+            if (enemy.isExpired) continue;
+
             const rect2 = enemy.container.getBoundingClientRect();
 
             if (app.collisionDetection(rect1, rect2) || enemy.isExpired) {
-                app.state.score += 1
+                app.state.score = app.state.score + 1
 
                 element.removeChild(laser.container)
                 laser.isExpired = true
-                app.state.lasers = app.state.lasers.filter(laser => !laser.isExpired)
-                app.state.rebootEnemies.push(enemy)
+                app.state.lasers = lasers.filter(laser => !laser.isExpired)
 
                 element.removeChild(enemy.container)
                 enemy.isExpired = true
-                app.state.enemies = app.state.enemies.filter(enemy => !enemy.isExpired)
-            }
-        })
-    })
-}
+                app.state.enemies = enemies.filter(enemy => !enemy.isExpired)
 
+                app.state.rebootEnemies.push(enemy)
+
+                app.printScore()
+                app.rebootEnemies()
+
+                break;
+            }
+        }
+    }
+}
 
 app.moveEnemies = () => {
     const updateX = Math.sin(app.state.lastTime / 1000.0) * app.game.width / 10;
@@ -394,19 +422,10 @@ app.moveEnemies = () => {
     })
 }
 
-app.createGrid = () => {
-    for (let row = 1; row <= 3; row++) {
-        const y = row * 90
-        for (let column = 0; column < 8; column++) {
-            const x = column * 90
-            app.createEnemies(app.game.area, x, y)
-        }
-    }
-}
-
 app.createEnemies = (gameArea, x, y) => {
     const container = document.createElement('div');
     container.className = 'enemy'
+    
     gameArea.appendChild(container)
 
     const enemy = {
@@ -422,7 +441,6 @@ app.createEnemies = (gameArea, x, y) => {
 
 app.rebootEnemies = () => {
     if (app.state.rebootEnemies.length > 10) {
-
         app.state.rebootEnemies.forEach(reboot => {
             app.createEnemies(app.game.area, reboot.x, reboot.y)
         })
@@ -430,8 +448,6 @@ app.rebootEnemies = () => {
         app.state.rebootEnemies = []
     }
 }
-
-
 
 app.showControls = () => {
     const checkbox = document.getElementById("show-controls")
@@ -506,7 +522,7 @@ app.screenControls = () => {
 app.update = () => {
     const currentTime = Date.now();
 
-    const delta = (currentTime - app.state.lastTime) / 800
+    const delta = (currentTime - app.state.lastTime) / 900
 
     app.state.lastTime = currentTime;
 
@@ -534,7 +550,6 @@ app.init = function () {
 app.init()
 
 
-
 app.mediaQuery(app.game.screen)
 app.game.screen.addListener(app.mediaQuery)
 
@@ -548,9 +563,10 @@ window.requestAnimationFrame(app.update)
 
 
 // Resources: 
-// https://isaacsukin.com/news/2015/01 detailed-explanation-javascript-game-loops-and-timing#timing-problems
-// Frederik De Bleser's youtube tutorials - Creating Space Invaders - https://www.youtube.com/watch?v=H5Stvl_kzag
-// Academy Space Invaders - https://github.com/keephopealive/academy-space-invaders
-// 
-// https://hackernoon.com/math-sin-and-math-cos-the-creative-coders-best-friend-597d69000644
+// Gaming Loops - https://isaacsukin.com/news/2015/01 detailed-explanation-javascript-game-loops-and-timing#timing-problems
+// Frederik De Bleser's Youtube tutorials - Creating Space Invaders - https://www.youtube.com/watch?v=H5Stvl_kzag
+// Math.sin and Math.cos — The creative coder’s best friend - https://hackernoon.com/math-sin-and-math-cos-the-creative-coders-best-friend-597d69000644
+// Academy's Space Invaders - https://github.com/keephopealive/academy-space-invaders
+// Hit Testing - https://en.wikipedia.org/wiki/Hit-testing
 // Creating grids with JavaScript - https://codepen.io/nakessler/pen/qOdJWm
+// High Performance Animations - https://www.html5rocks.com/en/tutorials/speed/high-performance-animations/
